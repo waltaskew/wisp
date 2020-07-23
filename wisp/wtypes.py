@@ -27,6 +27,7 @@ class Expression:
 
 
 Environment = typing.Dict[str, Expression]
+Callable = typing.Callable[[typing.List[Expression]], Expression]
 
 
 @dataclass
@@ -83,6 +84,31 @@ class Function(Expression):
     """
     func: typing.Callable[[typing.List[Expression]], Expression]
 
+    def call(self,
+             args: typing.List[Expression],
+             env: Environment) -> Expression:
+        """Evaluate the given args and call the function with them."""
+        args = [arg.eval(env) for arg in args]
+        # mypy gets confused and thinks this is a method call.
+        return self.func(args)  # type: ignore
+
+
+@dataclass
+class SpecialForm(Expression):
+    """A wisp function with special evaluation rules.
+
+    Similar to Function, but expressions in the arguments list are not
+    evaluated before the function is called.
+    """
+    func: typing.Callable[[typing.List[Expression]], Expression]
+
+    def call(self,
+             args: typing.List[Expression],
+             env: Environment) -> Expression:
+        """Call the function with the un-evaluated arguments list."""
+        # mypy gets confused and thinks this is a method call.
+        return self.func(args)  # type: ignore
+
 
 @dataclass
 class List(Expression):
@@ -100,13 +126,11 @@ class List(Expression):
             return self
 
         fn = self.lst[-1].eval(env)
-        if not isinstance(fn, Function):
-            raise WispException('%s is not a function' % self.lst[-1])
+        if not isinstance(fn, (Function, SpecialForm)):
+            raise WispException('%s is not applicable' % self.lst[-1])
 
-        args = [arg.eval(env) for arg in self.lst[:-1]]
-        args.reverse()
-        # mypy gets confused and thinks this is a method call.
-        return fn.func(args)  # type: ignore
+        args = list(reversed(self.lst[:-1]))
+        return fn.call(args, env)
 
 
 @dataclass

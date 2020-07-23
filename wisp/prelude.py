@@ -7,6 +7,24 @@ import typing
 import wisp.wtypes as wtypes
 
 
+def arity(n: int) -> typing.Callable[[wtypes.Callable], wtypes.Callable]:
+    """Decorator enforcing the function is called with right number of arguments.
+
+    Raise an exception if the decorated function is called with an arguments
+    list of length besides n.
+    """
+    def decorator(func: wtypes.Callable) -> wtypes.Callable:
+        def wrapper(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
+            if len(args) != n:
+                raise wtypes.WispException(
+                    'called with %d arguments, requires %d' % (len(args), n)
+                )
+            else:
+                return func(args)
+        return wrapper
+    return decorator
+
+
 def add(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
     """Add each argument, returning zero for no arguments."""
     return __wrap_operator(operator.add, args)
@@ -27,14 +45,16 @@ def div(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
     return __wrap_operator(operator.floordiv, args)
 
 
+@arity(2)
 def equal(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
     """Return a boolean indicating if the two elements are equal."""
-    if len(args) != 2:
-        raise wtypes.WispException(
-            'called with %d arguments, requires 2' % len(args)
-        )
-    else:
-        return wtypes.Bool(args[0] == args[1])
+    return wtypes.Bool(args[0] == args[1])
+
+
+@arity(1)
+def quote(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
+    """Return the argument as-is, un-evaluated."""
+    return args[0]
 
 
 def __wrap_operator(op,
@@ -54,4 +74,5 @@ def env() -> wtypes.Environment:
         '*': wtypes.Function(mul),
         '/': wtypes.Function(div),
         'eq?': wtypes.Function(equal),
+        'quote': wtypes.SpecialForm(quote),
     }
