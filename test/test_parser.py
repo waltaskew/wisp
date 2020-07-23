@@ -27,10 +27,11 @@ def test_parse_integer():
 
 def test_parse_list():
     """Ensure we can parse lists."""
-    assert parser.parse_expr.parse('(1    abc "abc" #t #f)') == wtypes.List([
+    assert parser.parse_expr.parse('(1    abc "abc" #t #f +)') == wtypes.List([
         wtypes.Integer(1),
         wtypes.Symbol('abc'),
         wtypes.String('abc'),
         wtypes.Bool(True),
         wtypes.Bool(False),
+        wtypes.Symbol('+'),
     ])

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import operator
 import typing
 
 
@@ -11,6 +12,18 @@ class Expression:
     """An evaluate-able wisp expression."""
     def eval(self, env: typing.Dict[str, 'Expression']) -> 'Expression':
         return self
+
+    def __add__(self, other: 'Expression') -> 'Expression':
+        raise WispException('Can not add %s' % self)
+
+    def __sub__(self, other: 'Expression') -> 'Expression':
+        raise WispException('Can not subtract %s' % self)
+
+    def __mul__(self, other: 'Expression') -> 'Expression':
+        raise WispException('Can not multiply %s' % self)
+
+    def __floordiv__(self, other: 'Expression') -> 'Expression':
+        raise WispException('Can not divide %s' % self)
 
 
 Environment = typing.Dict[str, Expression]
@@ -26,6 +39,33 @@ class String(Expression):
 class Integer(Expression):
     """A wisp integer."""
     val: int
+
+    def __add__(self, other: Expression) -> Expression:
+        return self.__wrap_operator(other, 'add', operator.add)
+
+    def __sub__(self, other: Expression) -> Expression:
+        return self.__wrap_operator(other, 'subtract', operator.sub)
+
+    def __mul__(self, other: Expression) -> Expression:
+        return self.__wrap_operator(other, 'multiply', operator.mul)
+
+    def __floordiv__(self, other: Expression) -> Expression:
+        return self.__wrap_operator(other, 'divide', operator.floordiv)
+
+    def __wrap_operator(self,
+                        other: Expression,
+                        op_name: str,
+                        op: typing.Callable[[int, int], int]) -> Expression:
+        """Call the given operator between self and other.
+
+        Calls the given operator between the underlying integers boxed by self
+        and other. Wraps the resulting value back in the Integer class.
+        Raises an exception if other not an Integer.
+        """
+        if not isinstance(other, self.__class__):
+            raise WispException('Can not %s %s' % (op_name, other))
+        else:
+            return self.__class__(op(self.val, other.val))
 
 
 @dataclass

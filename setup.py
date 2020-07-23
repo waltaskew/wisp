@@ -6,5 +6,10 @@ setup(
     packages=find_packages(),
     install_requires=[
         'parsec'
-    ]
+    ],
+    entry_points={
+        'console_scripts': [
+            'repl = wisp.repl:main',
+        ],
+    }
 )
