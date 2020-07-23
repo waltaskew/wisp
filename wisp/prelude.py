@@ -27,6 +27,16 @@ def div(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
     return __wrap_operator(operator.floordiv, args)
 
 
+def equal(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
+    """Return a boolean indicating if the two elements are equal."""
+    if len(args) != 2:
+        raise wtypes.WispException(
+            'called with %d arguments, requires 2' % len(args)
+        )
+    else:
+        return wtypes.Bool(args[0] == args[1])
+
+
 def __wrap_operator(op,
                     args: typing.List[wtypes.Expression]) -> wtypes.Expression:
     """Reduce the given operator over the given args. Return 0 for no args."""
@@ -43,4 +53,5 @@ def env() -> wtypes.Environment:
         '-': wtypes.Function(sub),
         '*': wtypes.Function(mul),
         '/': wtypes.Function(div),
+        'eq?': wtypes.Function(equal),
     }

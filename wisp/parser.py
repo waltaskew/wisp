@@ -17,7 +17,7 @@ def parse_string():
 @parsec.generate
 def parse_symbol():
     """Parse a symbol as a non-digit followed by any characters."""
-    symbol_chars = parsec.letter() | parsec.one_of('+-/*')
+    symbol_chars = parsec.letter() | parsec.one_of('+-/*?')
     first = yield symbol_chars
     rest = yield parsec.many(symbol_chars | parsec.digit())
     return wtypes.Symbol(first + ''.join(rest))
