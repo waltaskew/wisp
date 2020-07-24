@@ -29,7 +29,9 @@ class Expression:
         raise exceptions.WispException('Can not divide %s' % self)
 
 
-Callable = typing.Callable[[typing.List[Expression]], Expression]
+Callable = typing.Callable[
+    [typing.List[Expression], 'wisp.env.Environment'], Expression
+]
 
 
 @dataclass
@@ -92,7 +94,7 @@ class Function(Expression):
         """Evaluate the given args and call the function with them."""
         args = [arg.eval(env) for arg in args]
         # mypy gets confused and thinks this is a method call.
-        return self.func(args)  # type: ignore
+        return self.func(args, env)  # type: ignore
 
 
 @dataclass
@@ -109,7 +111,7 @@ class SpecialForm(Expression):
              env: wisp.env.Environment) -> Expression:
         """Call the function with the un-evaluated arguments list."""
         # mypy gets confused and thinks this is a method call.
-        return self.func(args)  # type: ignore
+        return self.func(args, env)  # type: ignore
 
 
 @dataclass

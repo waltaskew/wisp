@@ -117,6 +117,18 @@ def test_atom():
     ], env) == wtypes.Bool(False)
 
 
+def test_define():
+    """Ensure define binds values to symbols."""
+    env = prelude.env()
+
+    res = env[wtypes.Symbol('define')].call([
+        wtypes.Symbol('a'),
+        quoted_list([wtypes.String('apple')])
+    ], env)
+    assert res == wtypes.Symbol('a')
+    assert env[wtypes.Symbol('a')] == wtypes.List([wtypes.String('apple')])
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

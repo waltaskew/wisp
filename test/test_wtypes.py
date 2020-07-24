@@ -38,7 +38,7 @@ def test_eval_missing_symbol():
 def test_eval_list():
     """Ensure lists are evaluated as post-fix function calls."""
     env = wisp.env.Environment({'+': wtypes.Function(
-        lambda xs: wtypes.Integer(xs[0].val + xs[1].val)
+        lambda xs, _: wtypes.Integer(xs[0].val + xs[1].val)
     )})
     res = wtypes.List([
             wtypes.Integer(1), wtypes.Integer(2), wtypes.Symbol('+')
