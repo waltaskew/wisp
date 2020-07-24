@@ -2,13 +2,14 @@
 
 import pytest
 
+import wisp.exceptions as exceptions
 import wisp.prelude as prelude
 import wisp.wtypes as wtypes
 
 
 def test_add():
     """Ensure add maths properly."""
-    res = prelude.env()['+'].call(
+    res = prelude.env()[wtypes.Symbol('+')].call(
         [wtypes.Integer(1), wtypes.Integer(2)], {}
     )
     assert res == wtypes.Integer(3)
@@ -16,7 +17,7 @@ def test_add():
 
 def test_sub():
     """Ensure sub maths properly."""
-    res = prelude.env()['-'].call(
+    res = prelude.env()[wtypes.Symbol('-')].call(
         [wtypes.Integer(3), wtypes.Integer(1)], {}
     )
     assert res == wtypes.Integer(2)
@@ -24,7 +25,7 @@ def test_sub():
 
 def test_mul():
     """Ensure mul maths properly."""
-    res = prelude.env()['*'].call(
+    res = prelude.env()[wtypes.Symbol('*')].call(
         [wtypes.Integer(3), wtypes.Integer(2)], {}
     )
     assert res == wtypes.Integer(6)
@@ -32,7 +33,7 @@ def test_mul():
 
 def test_div():
     """Ensure div maths properly."""
-    res = prelude.env()['/'].call(
+    res = prelude.env()[wtypes.Symbol('/')].call(
         [wtypes.Integer(4), wtypes.Integer(2)], {}
     )
     assert res == wtypes.Integer(2)
@@ -40,22 +41,22 @@ def test_div():
 
 def test_equal():
     """Ensure equal tests equality properly."""
-    assert prelude.env()['eq?'].call(
+    assert prelude.env()[wtypes.Symbol('eq?')].call(
         [wtypes.Integer(4), wtypes.Integer(4)], {}
     ) == wtypes.Bool(True)
 
-    assert prelude.env()['eq?'].call(
+    assert prelude.env()[wtypes.Symbol('eq?')].call(
         [wtypes.Integer(4), wtypes.Integer(2)], {}
     ) == wtypes.Bool(False)
 
-    assert prelude.env()['eq?'].call(
+    assert prelude.env()[wtypes.Symbol('eq?')].call(
         [wtypes.Integer(4), wtypes.String('abc')], {}
     ) == wtypes.Bool(False)
 
 
 def test_quote():
     """Ensure quote does nothing."""
-    assert prelude.env()['quote'].call(
+    assert prelude.env()[wtypes.Symbol('quote')].call(
         [wtypes.Symbol('abc')], {}
     ) == wtypes.Symbol('abc')
 
@@ -63,7 +64,7 @@ def test_quote():
 def test_cons():
     """Ensure cons sticks things together."""
     env = prelude.env()
-    res = env['cons'].call([
+    res = env[wtypes.Symbol('cons')].call([
         wtypes.Integer(1),
         quoted_list([wtypes.Integer(2), wtypes.Integer(3)])
     ], env)
@@ -75,7 +76,7 @@ def test_cons():
 def test_car():
     """Ensure car takes the head."""
     env = prelude.env()
-    res = env['car'].call([
+    res = env[wtypes.Symbol('car')].call([
         quoted_list([wtypes.Integer(1), wtypes.Integer(2), wtypes.Integer(3)])
     ], env)
     assert res == wtypes.Integer(1)
@@ -84,7 +85,7 @@ def test_car():
 def test_cdr():
     """Ensure cdr takes the rest."""
     env = prelude.env()
-    res = env['cdr'].call([
+    res = env[wtypes.Symbol('cdr')].call([
         quoted_list([wtypes.Integer(1), wtypes.Integer(2), wtypes.Integer(3)])
     ], env)
     assert res == wtypes.List([
@@ -96,11 +97,11 @@ def test_empty_car_and_cdr():
     """Ensure car and cdr raise an error on empty lists."""
     env = prelude.env()
 
-    with pytest.raises(wtypes.WispException):
-        env['car'].call([quoted_list([])], env)
+    with pytest.raises(exceptions.WispException):
+        env[wtypes.Symbol('car')].call([quoted_list([])], env)
 
-    with pytest.raises(wtypes.WispException):
-        env['cdr'].call([quoted_list([])], env)
+    with pytest.raises(exceptions.WispException):
+        env[wtypes.Symbol('cdr')].call([quoted_list([])], env)
 
 
 def quoted_list(elems):

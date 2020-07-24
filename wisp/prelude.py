@@ -4,6 +4,8 @@ import functools
 import operator
 import typing
 
+import wisp.env
+import wisp.exceptions as exceptions
 import wisp.wtypes as wtypes
 
 T = typing.TypeVar('T')
@@ -18,7 +20,7 @@ def arity(n: int) -> typing.Callable[[wtypes.Callable], wtypes.Callable]:
     def decorator(func: wtypes.Callable) -> wtypes.Callable:
         def wrapper(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
             if len(args) != n:
-                raise wtypes.WispException(
+                raise exceptions.WispException(
                     'called with %d arguments, requires %d' % (len(args), n)
                 )
             else:
@@ -66,7 +68,9 @@ def cons(args: typing.List[wtypes.Expression]) -> wtypes.List:
     if isinstance(rest, wtypes.List):
         return wtypes.List([head] + rest.lst)
     else:
-        raise wtypes.WispException('expected %s, not %s' % (wtypes.List, rest))
+        raise exceptions.WispException(
+            'expected %s, not %s' % (wtypes.List, rest)
+        )
 
 
 @arity(1)
@@ -89,9 +93,13 @@ def __list_op(op: typing.Callable[[wtypes.List], T],
         if val.lst:
             return op(val)
         else:
-            raise wtypes.WispException('can not apply cdr to an empty list')
+            raise exceptions.WispException(
+                'can not apply cdr to an empty list'
+            )
     else:
-        raise wtypes.WispException('expected %s, not %s' % (wtypes.List, val))
+        raise exceptions.WispException(
+            'expected %s, not %s' % (wtypes.List, val)
+        )
 
 
 def __wrap_operator(op,
@@ -103,9 +111,9 @@ def __wrap_operator(op,
         return functools.reduce(op, args)
 
 
-def env() -> wtypes.Environment:
+def env() -> wisp.env.Environment:
     """Build an environment with wisp builtin functions defined."""
-    return {
+    return wisp.env.Environment({
         '+': wtypes.Function(add),
         '-': wtypes.Function(sub),
         '*': wtypes.Function(mul),
@@ -115,4 +123,4 @@ def env() -> wtypes.Environment:
         'cons': wtypes.Function(cons),
         'car': wtypes.Function(car),
         'cdr': wtypes.Function(cdr),
-    }
+    })

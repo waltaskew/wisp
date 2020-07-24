@@ -1,32 +1,34 @@
+# Avoids circular imports we'd otherwise hit importing just for the types.
+from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+    import wisp.env
+
 from dataclasses import dataclass
 import operator
 import typing
 
-
-class WispException(Exception):
-    """A base exception to distinguish user errors issued by wisp."""
-    pass
+import wisp.exceptions as exceptions
 
 
 class Expression:
     """An evaluate-able wisp expression."""
-    def eval(self, env: typing.Dict[str, 'Expression']) -> 'Expression':
+    def eval(self, env: wisp.env.Environment) -> 'Expression':
         return self
 
     def __add__(self, other: 'Expression') -> 'Expression':
-        raise WispException('Can not add %s' % self)
+        raise exceptions.WispException('Can not add %s' % self)
 
     def __sub__(self, other: 'Expression') -> 'Expression':
-        raise WispException('Can not subtract %s' % self)
+        raise exceptions.WispException('Can not subtract %s' % self)
 
     def __mul__(self, other: 'Expression') -> 'Expression':
-        raise WispException('Can not multiply %s' % self)
+        raise exceptions.WispException('Can not multiply %s' % self)
 
     def __floordiv__(self, other: 'Expression') -> 'Expression':
-        raise WispException('Can not divide %s' % self)
+        raise exceptions.WispException('Can not divide %s' % self)
 
 
-Environment = typing.Dict[str, Expression]
 Callable = typing.Callable[[typing.List[Expression]], Expression]
 
 
@@ -64,7 +66,7 @@ class Integer(Expression):
         Raises an exception if other not an Integer.
         """
         if not isinstance(other, self.__class__):
-            raise WispException('Can not %s %s' % (op_name, other))
+            raise exceptions.WispException('Can not %s %s' % (op_name, other))
         else:
             return self.__class__(op(self.val, other.val))
 
@@ -82,11 +84,11 @@ class Function(Expression):
     Implemented as a python function which accepts a list of Expressions
     as arguments and returns an Expression.
     """
-    func: typing.Callable[[typing.List[Expression]], Expression]
+    func: Callable
 
     def call(self,
              args: typing.List[Expression],
-             env: Environment) -> Expression:
+             env: wisp.env.Environment) -> Expression:
         """Evaluate the given args and call the function with them."""
         args = [arg.eval(env) for arg in args]
         # mypy gets confused and thinks this is a method call.
@@ -100,11 +102,11 @@ class SpecialForm(Expression):
     Similar to Function, but expressions in the arguments list are not
     evaluated before the function is called.
     """
-    func: typing.Callable[[typing.List[Expression]], Expression]
+    func: Callable
 
     def call(self,
              args: typing.List[Expression],
-             env: Environment) -> Expression:
+             env: wisp.env.Environment) -> Expression:
         """Call the function with the un-evaluated arguments list."""
         # mypy gets confused and thinks this is a method call.
         return self.func(args)  # type: ignore
@@ -115,7 +117,7 @@ class List(Expression):
     """A wisp list of expressions."""
     lst: typing.List[Expression]
 
-    def eval(self, env: Environment) -> Expression:
+    def eval(self, env: wisp.env.Environment) -> Expression:
         """Evaluate a list as a postfix function call.
 
         Treat the last item in the list as a symbol pointing to a function.
@@ -127,7 +129,9 @@ class List(Expression):
 
         fn = self.lst[-1].eval(env)
         if not isinstance(fn, (Function, SpecialForm)):
-            raise WispException('%s is not applicable' % self.lst[-1])
+            raise exceptions.WispException(
+                '%s is not applicable' % self.lst[-1]
+            )
 
         args = list(reversed(self.lst[:-1]))
         return fn.call(args, env)
@@ -138,10 +142,6 @@ class Symbol(Expression):
     """A wisp symbol."""
     name: str
 
-    def eval(self, env: Environment) -> Expression:
+    def eval(self, env: wisp.env.Environment) -> Expression:
         """Evaluate a symbol by looking up its value in the environment."""
-        val = env.get(self.name)
-        if val is not None:
-            return val
-        else:
-            raise WispException('No binding for %s' % self)
+        return env[self]

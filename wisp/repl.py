@@ -2,9 +2,9 @@
 
 import parsec  # type: ignore
 
+import wisp.exceptions as exceptions
 import wisp.parser as parser
 import wisp.prelude as prelude
-import wisp.wtypes as wtypes
 
 
 def main():
@@ -25,5 +25,5 @@ def main():
                 try:
                     result = expr.eval(env)
                     print(result)
-                except wtypes.WispException as e:
+                except exceptions.WispException as e:
                     print(e)
