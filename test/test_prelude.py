@@ -129,6 +129,28 @@ def test_define():
     assert env[wtypes.Symbol('a')] == wtypes.List([wtypes.String('apple')])
 
 
+def test_lambda():
+    """Ensure lambdas can be defined and called."""
+    env = prelude.env()
+
+    # define a lambda performing x - y
+    sub_lambda = env[wtypes.Symbol('lambda')].call([
+        wtypes.List([wtypes.Symbol('x'), wtypes.Symbol('y')]),
+        wtypes.List([
+            wtypes.Symbol('y'), wtypes.Symbol('x'), wtypes.Symbol('-')
+        ]),
+    ], env)
+
+    # ensure we can call the above lambda
+    call = wtypes.List([wtypes.Integer(1), wtypes.Integer(3), sub_lambda])
+    res = call.eval(env)
+    assert res == wtypes.Integer(2)
+
+    # ensure we didn't pollute the environment with bindings from the call.
+    with pytest.raises(exceptions.WispException):
+        env[wtypes.Symbol('x')]
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

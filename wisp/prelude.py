@@ -76,9 +76,7 @@ def cons(args: typing.List[wtypes.Expression],
     if isinstance(rest, wtypes.List):
         return wtypes.List([head] + rest.lst)
     else:
-        raise exceptions.WispException(
-            'expected %s, not %s' % (wtypes.List, rest)
-        )
+        raise exceptions.type_error(wtypes.List, rest)
 
 
 @arity(1)
@@ -111,9 +109,47 @@ def define(args: typing.List[wtypes.Expression],
         env.add_binding(key, val.eval(env))
         return key
     else:
-        raise exceptions.WispException(
-            'expected %s, not %s' % (wtypes.Symbol, key)
-        )
+        raise exceptions.type_error(wtypes.Symbol, key)
+
+
+@arity(2)
+def w_lambda(args: typing.List[wtypes.Expression],
+             env: wisp.env.Environment) -> wtypes.Function:
+    """Create a lambda given an argument list and a body."""
+    arg_def, body = args
+    if isinstance(arg_def, wtypes.List):
+        if all(isinstance(arg, wtypes.Symbol) for arg in arg_def.lst):
+            if isinstance(body, wtypes.List):
+                # mypy isn't smart enough to understand the
+                # all(isinstance()) call above.
+                return make_lamba(arg_def.lst, body)  # type: ignore
+    raise exceptions.WispException('invalid lambda %s %s' % (arg_def, body))
+
+
+def make_lamba(arg_def: typing.List[wtypes.Symbol],
+               body: wtypes.List) -> wtypes.Function:
+    """Create a lambda for the argument list and body."""
+    @arity(len(arg_def))
+    def func(args: typing.List[wtypes.Expression],
+             env: wisp.env.Environment) -> wtypes.Expression:
+        """Bind arguments to a new frame and evaluate the body.
+
+        This is the function which is actually called when the lambda
+        is evaluated. It creates a new stack frame, evaluates the
+        arguments passed, binds them according to the parameter list
+        and then evaluates the body in that frame.
+        """
+        vals = [arg.eval(env) for arg in args]
+
+        env.add_frame()
+        for symbol, val in zip(arg_def, vals):
+            env.add_binding(symbol, val)
+        ret = body.eval(env)
+        env.pop_frame()
+
+        return ret
+
+    return wtypes.Function(func)
 
 
 def __list_op(op: typing.Callable[[wtypes.List], T],
@@ -128,9 +164,7 @@ def __list_op(op: typing.Callable[[wtypes.List], T],
                 'can not apply cdr to an empty list'
             )
     else:
-        raise exceptions.WispException(
-            'expected %s, not %s' % (wtypes.List, val)
-        )
+        raise exceptions.type_error(wtypes.List, val)
 
 
 def __wrap_operator(op,
@@ -156,4 +190,5 @@ def env() -> wisp.env.Environment:
         'cdr': wtypes.Function(cdr),
         'atom?': wtypes.Function(is_atom),
         'define': wtypes.SpecialForm(define),
+        'lambda': wtypes.SpecialForm(w_lambda),
     })
