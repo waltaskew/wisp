@@ -1,6 +1,6 @@
 """Tests for prelude functions."""
 
-import pytest
+import pytest  # type: ignore
 
 import wisp.exceptions as exceptions
 import wisp.prelude as prelude

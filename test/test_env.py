@@ -1,5 +1,5 @@
 """Tests for the env module."""
-import pytest
+import pytest  # type: ignore
 
 import wisp.exceptions as exceptions
 import wisp.env
