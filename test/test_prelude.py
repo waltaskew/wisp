@@ -104,6 +104,19 @@ def test_empty_car_and_cdr():
         env[wtypes.Symbol('cdr')].call([quoted_list([])], env)
 
 
+def test_atom():
+    """Ensure atom indicates atomicity."""
+    env = prelude.env()
+
+    assert env[wtypes.Symbol('atom?')].call([
+        wtypes.Integer(1)
+    ], env) == wtypes.Bool(True)
+
+    assert env[wtypes.Symbol('atom?')].call([
+        quoted_list([wtypes.Integer(1)])
+    ], env) == wtypes.Bool(False)
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

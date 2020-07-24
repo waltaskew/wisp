@@ -50,7 +50,7 @@ def div(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
 
 
 @arity(2)
-def equal(args: typing.List[wtypes.Expression]) -> wtypes.Bool:
+def is_equal(args: typing.List[wtypes.Expression]) -> wtypes.Bool:
     """Return a boolean indicating if the two elements are equal."""
     return wtypes.Bool(args[0] == args[1])
 
@@ -83,6 +83,12 @@ def car(args: typing.List[wtypes.Expression]) -> wtypes.Expression:
 def cdr(args: typing.List[wtypes.Expression]) -> wtypes.List:
     """Return all but the first element of the given list."""
     return __list_op(lambda wlst: wtypes.List(wlst.lst[1:]), args)
+
+
+@arity(1)
+def is_atom(args: typing.List[wtypes.Expression]) -> wtypes.Bool:
+    """Indicate whether we're passed a list or an atom."""
+    return wtypes.Bool(not isinstance(args[0], wtypes.List))
 
 
 def __list_op(op: typing.Callable[[wtypes.List], T],
@@ -118,9 +124,10 @@ def env() -> wisp.env.Environment:
         '-': wtypes.Function(sub),
         '*': wtypes.Function(mul),
         '/': wtypes.Function(div),
-        'eq?': wtypes.Function(equal),
+        'eq?': wtypes.Function(is_equal),
         'quote': wtypes.SpecialForm(quote),
         'cons': wtypes.Function(cons),
         'car': wtypes.Function(car),
         'cdr': wtypes.Function(cdr),
+        'atom?': wtypes.Function(is_atom),
     })
