@@ -74,7 +74,7 @@ def cons(args: typing.List[wtypes.Expression],
     """Attach the first argument to the head of the list in the second."""
     head, rest = args
     if isinstance(rest, wtypes.List):
-        return wtypes.List([head] + rest.lst)
+        return wtypes.List([head] + rest.items)
     else:
         raise exceptions.type_error(wtypes.List, rest)
 
@@ -83,14 +83,14 @@ def cons(args: typing.List[wtypes.Expression],
 def car(args: typing.List[wtypes.Expression],
         env: wisp.env.Environment) -> wtypes.Expression:
     """Return the first element of the given list."""
-    return __list_op(lambda wlst: wlst.lst[0], args)
+    return __list_op(lambda wlst: wlst.items[0], args)
 
 
 @arity(1)
 def cdr(args: typing.List[wtypes.Expression],
         env: wisp.env.Environment) -> wtypes.List:
     """Return all but the first element of the given list."""
-    return __list_op(lambda wlst: wtypes.List(wlst.lst[1:]), args)
+    return __list_op(lambda wlst: wtypes.List(wlst.items[1:]), args)
 
 
 @arity(1)
@@ -118,11 +118,11 @@ def w_lambda(args: typing.List[wtypes.Expression],
     """Create a lambda given an argument list and a body."""
     arg_def, body = args
     if isinstance(arg_def, wtypes.List):
-        if all(isinstance(arg, wtypes.Symbol) for arg in arg_def.lst):
+        if all(isinstance(arg, wtypes.Symbol) for arg in arg_def.items):
             if isinstance(body, wtypes.List):
                 # mypy isn't smart enough to understand the
                 # all(isinstance()) call above.
-                return make_lamba(arg_def.lst, body)  # type: ignore
+                return make_lamba(arg_def.items, body)  # type: ignore
     raise exceptions.WispException('invalid lambda %s %s' % (arg_def, body))
 
 
@@ -157,7 +157,7 @@ def __list_op(op: typing.Callable[[wtypes.List], T],
     """Ensure args is a non-empty List and return the call of op on it."""
     val = args[0]
     if isinstance(val, wtypes.List):
-        if val.lst:
+        if val.items:
             return op(val)
         else:
             raise exceptions.WispException(

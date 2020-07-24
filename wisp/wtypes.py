@@ -117,7 +117,7 @@ class SpecialForm(Expression):
 @dataclass
 class List(Expression):
     """A wisp list of expressions."""
-    lst: typing.List[Expression]
+    items: typing.List[Expression]
 
     def eval(self, env: wisp.env.Environment) -> Expression:
         """Evaluate a list as a postfix function call.
@@ -126,16 +126,16 @@ class List(Expression):
         Treat other members of the list as arguments to the function.
         An empty list evaluates to an empty list.
         """
-        if not self.lst:
+        if not self.items:
             return self
 
-        fn = self.lst[-1].eval(env)
+        fn = self.items[-1].eval(env)
         if not isinstance(fn, (Function, SpecialForm)):
             raise exceptions.WispException(
-                '%s is not applicable' % self.lst[-1]
+                '%s is not applicable' % self.items[-1]
             )
 
-        args = list(reversed(self.lst[:-1]))
+        args = list(reversed(self.items[:-1]))
         return fn.call(args, env)
 
 
