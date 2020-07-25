@@ -18,7 +18,7 @@ def main():
             exit(0)
         else:
             try:
-                expr = parser.parse_expr.parse(line)
+                expr = parser.parse_expr.parse_strict(line)
             except parsec.ParseError as e:
                 print(e)
             else:
