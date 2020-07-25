@@ -151,6 +151,26 @@ def test_lambda():
         env[wtypes.Symbol('x')]
 
 
+def test_bad_lambda():
+    """Ensure we handle lambdas which raise exceptions."""
+    env = prelude.env()
+
+    # define a lambda calling a non-existent symbol
+    bad_lambda = env[wtypes.Symbol('lambda')].call([
+        wtypes.List([wtypes.Symbol('x')]),
+        wtypes.List([wtypes.Symbol('snakes')])
+    ], env)
+
+    # raise an exception when we call it
+    call = wtypes.List([wtypes.Integer(2), bad_lambda])
+    with pytest.raises(exceptions.WispException):
+        call.eval(env)
+
+    # ensure we didn't pollute even though the call raised an exception
+    with pytest.raises(exceptions.WispException):
+        env[wtypes.Symbol('x')]
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

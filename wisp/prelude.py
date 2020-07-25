@@ -143,12 +143,12 @@ def make_lamba(arg_def: typing.List[wtypes.Symbol],
         vals = [arg.eval(env) for arg in args]
 
         env.add_frame()
-        for symbol, val in zip(arg_def, vals):
-            env.add_binding(symbol, val)
-        ret = body.eval(env)
-        env.pop_frame()
-
-        return ret
+        try:
+            for symbol, val in zip(arg_def, vals):
+                env.add_binding(symbol, val)
+            return body.eval(env)
+        finally:
+            env.pop_frame()
 
     return wtypes.Function(func)
 
