@@ -18,6 +18,7 @@ def arity(n: int) -> typing.Callable[[wtypes.Callable], wtypes.Callable]:
     list of length besides n.
     """
     def decorator(func: wtypes.Callable) -> wtypes.Callable:
+        @functools.wraps(func)
         def wrapper(args: typing.List[wtypes.Expression],
                     env: wisp.env.Environment) -> wtypes.Expression:
             if len(args) != n:
