@@ -56,19 +56,15 @@ def test_get_missing():
 
 
 def test_set_bindings():
-    """Ensure we set bindings in the nearest frame."""
+    """Ensure we set bindings in the current frame."""
     env = wisp.env.Environment()
     env.add_binding(wtypes.Symbol('a'), wtypes.String('apple'))
 
     env.add_frame()
     env.add_binding(wtypes.Symbol('a'), wtypes.String('aardvark'))
 
-    env.add_frame()
     env[wtypes.Symbol('a')] = wtypes.String('adorno')
 
-    assert env[wtypes.Symbol('a')] == wtypes.String('adorno')
-
-    env.pop_frame()
     assert env[wtypes.Symbol('a')] == wtypes.String('adorno')
 
     env.pop_frame()
@@ -80,3 +76,26 @@ def test_set_missing():
     env = wisp.env.Environment()
     with pytest.raises(exceptions.WispException):
         env[wtypes.Symbol('a')] = wtypes.String('apple')
+
+
+def test_local_global_scope():
+    """Ensure we return the local and global scope properly."""
+    env = wisp.env.Environment()
+    env.add_binding(wtypes.Symbol('a'), wtypes.String('apple'))
+
+    env.add_frame()
+    env.add_binding(wtypes.Symbol('a'), wtypes.String('aardvark'))
+
+    env.add_frame()
+    env.add_binding(wtypes.Symbol('a'), wtypes.String('adorno'))
+
+    assert env.global_scope() == {'a': wtypes.String('apple')}
+    assert env.local_scope() == {'a': wtypes.String('adorno')}
+
+    env.pop_frame()
+    assert env.global_scope() == {'a': wtypes.String('apple')}
+    assert env.local_scope() == {'a': wtypes.String('aardvark')}
+
+    env.pop_frame()
+    assert env.global_scope() == {'a': wtypes.String('apple')}
+    assert env.local_scope() == {}

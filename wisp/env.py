@@ -20,6 +20,22 @@ class Environment:
                      typing.Dict[str, wtypes.Expression]] = None):
         self.frames = collections.deque([frame or {}])
 
+    def global_scope(self) -> typing.Dict[str, wtypes.Expression]:
+        """Return the frame representing the global scope."""
+        return self.frames[-1]
+
+    def local_scope(self) -> typing.Dict[str, wtypes.Expression]:
+        """Return the frame representing the local scope if present.
+
+        Returns an empty frame if we're currently in the global scope and there
+        are no locals to return.
+        """
+        if len(self.frames) <= 1:
+            # There's only the one global scope.
+            return {}
+        else:
+            return self.frames[0]
+
     def add_frame(self,
                   env: typing.Optional[
                       typing.Dict[str, wtypes.Expression]] = None):
@@ -35,7 +51,7 @@ class Environment:
 
         Raises an exception if the symbol can not be found in any frame.
         """
-        for frame in self.frames:
+        for frame in (self.local_scope(), self.global_scope()):
             if key.name in frame:
                 return frame[key.name]
         else:
@@ -50,7 +66,7 @@ class Environment:
 
         Raises an exception if the symbol is not yet bound.
         """
-        for frame in self.frames:
+        for frame in (self.local_scope(), self.global_scope()):
             if key.name in frame:
                 frame[key.name] = val
                 break
