@@ -170,6 +170,24 @@ def cond(args: typing.List[wtypes.Expression],
         return wtypes.Symbol('unspecified return value')
 
 
+@arity(2)
+def w_set(args: typing.List[wtypes.Expression],
+          env: wisp.env.Environment) -> wtypes.Symbol:
+    """Mutate an existing binding to contain the given expression."""
+    key, val = args
+    if isinstance(key, wtypes.Symbol):
+        env[key] = val.eval(env)
+        return key
+    else:
+        raise exceptions.type_error(wtypes.Symbol, key)
+
+
+def begin(args: typing.List[wtypes.Expression],
+          env: wisp.env.Environment) -> wtypes.Expression:
+    """Return the last of the given arguments."""
+    return args[-1]
+
+
 def __list_op(op: typing.Callable[[wtypes.List], T],
               args: typing.List[wtypes.Expression]) -> T:
     """Ensure args is a non-empty List and return the call of op on it."""
@@ -210,4 +228,6 @@ def env() -> wisp.env.Environment:
         'define': wtypes.SpecialForm(define),
         'lambda': wtypes.SpecialForm(w_lambda),
         'cond': wtypes.SpecialForm(cond),
+        'set!': wtypes.SpecialForm(w_set),
+        'begin': wtypes.Function(begin),
     })

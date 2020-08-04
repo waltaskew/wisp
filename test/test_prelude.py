@@ -199,6 +199,56 @@ def test_cond():
     assert result == wtypes.String('one')
 
 
+def test_begin():
+    """Ensure begin return the last expression."""
+    env = prelude.env()
+    call = wtypes.List([
+        wtypes.List([
+            wtypes.Integer(1),
+            wtypes.Integer(2),
+            wtypes.Symbol('+'),
+        ]),
+        wtypes.List([
+            wtypes.Integer(1),
+            wtypes.Integer(1),
+            wtypes.Symbol('+'),
+        ]),
+        wtypes.Symbol('begin')
+    ])
+    assert call.eval(env) == wtypes.Integer(3)
+
+
+def test_set():
+    """Ensure set mutates bindings."""
+    env = prelude.env()
+
+    # ensure we can't set non-existent bindings
+    bad_call = wtypes.List([
+        wtypes.Integer(1),
+        wtypes.Symbol('x'),
+        wtypes.Symbol('set!')
+    ])
+    with pytest.raises(exceptions.WispException):
+        assert bad_call.eval(env)
+
+    # ensure we can set previously-existent bindings
+    define_call = wtypes.List([
+        wtypes.Integer(1),
+        wtypes.Symbol('x'),
+        wtypes.Symbol('define')
+    ])
+    define_call.eval(env)
+    assert wtypes.Symbol('x').eval(env) == wtypes.Integer(1)
+
+    set_call = wtypes.List([
+        wtypes.Integer(2),
+        wtypes.Symbol('x'),
+        wtypes.Symbol('set!')
+    ])
+    set_call.eval(env)
+    assert wtypes.Symbol('x').eval(env) == wtypes.Integer(2)
+
+
 def test_cond_with_else():
     """Ensure we handle else expressions."""
     env = prelude.env()
