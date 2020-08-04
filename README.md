@@ -123,3 +123,19 @@ Integer(val=13)
 wisp => (8 fib)
 Integer(val=21)
 ```
+
+closures!
+```
+wisp => ((((x ((1 x +) x set!) begin) () lambda) (x) lambda) counter define)
+Symbol(name='counter')
+wisp => ((0 counter) c define)
+Symbol(name='c')
+wisp => (c)
+Integer(val=1)
+wisp => (c)
+Integer(val=2)
+wisp => (c)
+Integer(val=3)
+wisp => x
+No binding for Symbol(name='x')
+```

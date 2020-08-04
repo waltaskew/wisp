@@ -275,6 +275,131 @@ def test_cond_with_else():
     assert result == wtypes.String('else-case')
 
 
+def test_recursion():
+    """Ensure we can handle simple recursion."""
+    env = prelude.env()
+    fib_def = wtypes.List([
+        wtypes.List([
+            wtypes.List([
+                wtypes.List([
+                    wtypes.List([
+                        wtypes.List([
+                            wtypes.List([
+                                wtypes.Integer(2),
+                                wtypes.Symbol('n'),
+                                wtypes.Symbol('-')
+                            ]),
+                            wtypes.Symbol('fib')
+                        ]),
+                        wtypes.List([
+                            wtypes.List([
+                                wtypes.Integer(1),
+                                wtypes.Symbol('n'),
+                                wtypes.Symbol('-')
+                            ]),
+                            wtypes.Symbol('fib')
+                        ]),
+                        wtypes.Symbol('+')
+                    ]),
+                    wtypes.Symbol('else')
+                ]),
+                wtypes.List([
+                    wtypes.Integer(1),
+                    wtypes.List([
+                        wtypes.Integer(1),
+                        wtypes.Symbol('n'),
+                        wtypes.Symbol('eq?')
+                    ])
+                ]),
+                wtypes.List([
+                    wtypes.Integer(0),
+                    wtypes.List([
+                        wtypes.Integer(0),
+                        wtypes.Symbol('n'),
+                        wtypes.Symbol('eq?')
+                    ])
+                ]),
+                wtypes.Symbol('cond')
+            ]),
+            wtypes.List([
+                wtypes.Symbol('n')
+            ]),
+            wtypes.Symbol('lambda')
+        ]),
+        wtypes.Symbol('fib'),
+        wtypes.Symbol('define'),
+    ])
+    fib_def.eval(env)
+
+    call = wtypes.List([wtypes.Integer(0), wtypes.Symbol('fib')])
+    assert call.eval(env) == wtypes.Integer(0)
+
+    call = wtypes.List([wtypes.Integer(1), wtypes.Symbol('fib')])
+    assert call.eval(env) == wtypes.Integer(1)
+
+    call = wtypes.List([wtypes.Integer(5), wtypes.Symbol('fib')])
+    assert call.eval(env) == wtypes.Integer(5)
+
+    call = wtypes.List([wtypes.Integer(6), wtypes.Symbol('fib')])
+    assert call.eval(env) == wtypes.Integer(8)
+
+    call = wtypes.List([wtypes.Integer(7), wtypes.Symbol('fib')])
+    assert call.eval(env) == wtypes.Integer(13)
+
+
+def test_closures():
+    """Ensure we handle closures properly."""
+    env = prelude.env()
+    counter_def = wtypes.List([
+        wtypes.List([
+            wtypes.List([
+                wtypes.List([
+                    wtypes.Symbol('x'),
+                    wtypes.List([
+                        wtypes.List([
+                            wtypes.Integer(1),
+                            wtypes.Symbol('x'),
+                            wtypes.Symbol('+')
+                        ]),
+                        wtypes.Symbol('x'),
+                        wtypes.Symbol('set!')
+                    ]),
+                    wtypes.Symbol('begin')
+                ]),
+                wtypes.List([]),
+                wtypes.Symbol('lambda')
+            ]),
+            wtypes.List([
+                wtypes.Symbol('x')
+            ]),
+            wtypes.Symbol('lambda')
+        ]),
+        wtypes.Symbol('make-counter'),
+        wtypes.Symbol('define'),
+    ])
+    counter_def.eval(env)
+
+    counter = wtypes.List([
+        wtypes.List([
+            wtypes.Integer(0),
+            wtypes.Symbol('make-counter')
+        ]),
+        wtypes.Symbol('c'),
+        wtypes.Symbol('define'),
+    ])
+    counter.eval(env)
+
+    call = wtypes.List([wtypes.Symbol('c')])
+
+    assert call.eval(env) == wtypes.Integer(1)
+    assert call.eval(env) == wtypes.Integer(2)
+    assert call.eval(env) == wtypes.Integer(3)
+
+    # ensure 'x' from the closure hasn't leaked into the global scope.
+    with pytest.raises(exceptions.WispException):
+        env[wtypes.Symbol('x')]
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

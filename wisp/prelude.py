@@ -123,13 +123,16 @@ def w_lambda(args: typing.List[wtypes.Expression],
             if isinstance(body, wtypes.List):
                 # mypy isn't smart enough to understand the
                 # all(isinstance()) call above.
-                return make_lamba(arg_def.items, body)  # type: ignore
+                return make_lamba(arg_def.items, body, env)  # type: ignore
     raise exceptions.WispException('invalid lambda %s %s' % (arg_def, body))
 
 
 def make_lamba(arg_def: typing.List[wtypes.Symbol],
-               body: wtypes.List) -> wtypes.Function:
+               body: wtypes.List,
+               closure: wisp.env.Environment) -> wtypes.Function:
     """Create a lambda for the argument list and body."""
+    closure_frame = closure.local_scope()
+
     @arity(len(arg_def))
     def func(args: typing.List[wtypes.Expression],
              env: wisp.env.Environment) -> wtypes.Expression:
@@ -142,10 +145,13 @@ def make_lamba(arg_def: typing.List[wtypes.Symbol],
         """
         vals = [arg.eval(env) for arg in args]
 
-        env.add_frame()
+        # add bindings for the closure
+        env.add_frame(closure_frame)
         try:
+            # add bindings for the function arguments
             for symbol, val in zip(arg_def, vals):
                 env.add_binding(symbol, val)
+
             return body.eval(env)
         finally:
             env.pop_frame()
