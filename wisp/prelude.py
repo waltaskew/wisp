@@ -153,6 +153,23 @@ def make_lamba(arg_def: typing.List[wtypes.Symbol],
     return wtypes.Function(func)
 
 
+def cond(args: typing.List[wtypes.Expression],
+         env: wisp.env.Environment) -> wtypes.Expression:
+    """Return the expression associated with the first test to return true."""
+    for arg in args:
+        if not isinstance(arg, wtypes.List):
+            raise exceptions.WispException('invalid cond form: %s' % args)
+        elif len(arg.items) != 2:
+            raise exceptions.WispException('invalid cond form: %s' % args)
+
+        body, test = arg.items
+        if (test == wtypes.Symbol('else') or
+                test.eval(env) == wtypes.Bool(True)):
+            return body.eval(env)
+    else:
+        return wtypes.Symbol('unspecified return value')
+
+
 def __list_op(op: typing.Callable[[wtypes.List], T],
               args: typing.List[wtypes.Expression]) -> T:
     """Ensure args is a non-empty List and return the call of op on it."""
@@ -192,4 +209,5 @@ def env() -> wisp.env.Environment:
         'atom?': wtypes.Function(is_atom),
         'define': wtypes.SpecialForm(define),
         'lambda': wtypes.SpecialForm(w_lambda),
+        'cond': wtypes.SpecialForm(cond),
     })

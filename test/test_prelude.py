@@ -171,6 +171,60 @@ def test_bad_lambda():
         env[wtypes.Symbol('x')]
 
 
+def test_cond():
+    """Ensure we evaluate cond properly."""
+    env = prelude.env()
+    call = wtypes.List([
+        wtypes.List([
+            wtypes.String('two'),
+            wtypes.List([
+                wtypes.Integer(2), wtypes.Integer(2), wtypes.Symbol('eq?')
+            ])
+        ]),
+        wtypes.List([
+            wtypes.String('one'),
+            wtypes.List([
+                wtypes.Integer(1), wtypes.Integer(1), wtypes.Symbol('eq?')
+            ])
+        ]),
+        wtypes.List([
+            wtypes.String('not-one'),
+            wtypes.List([
+                wtypes.Integer(2), wtypes.Integer(1), wtypes.Symbol('eq?')
+            ])
+        ]),
+        wtypes.Symbol('cond')
+    ])
+    result = call.eval(env)
+    assert result == wtypes.String('one')
+
+
+def test_cond_with_else():
+    """Ensure we handle else expressions."""
+    env = prelude.env()
+    call = wtypes.List([
+        wtypes.List([
+            wtypes.String('else-case'),
+            wtypes.Symbol('else')
+        ]),
+        wtypes.List([
+            wtypes.String('not-two'),
+            wtypes.List([
+                wtypes.Integer(3), wtypes.Integer(2), wtypes.Symbol('eq?')
+            ])
+        ]),
+        wtypes.List([
+            wtypes.String('not-one'),
+            wtypes.List([
+                wtypes.Integer(2), wtypes.Integer(1), wtypes.Symbol('eq?')
+            ])
+        ]),
+        wtypes.Symbol('cond')
+    ])
+    result = call.eval(env)
+    assert result == wtypes.String('else-case')
+
+
 def quoted_list(elems):
     """Build a quoted list consisting of the given elements, safe from eval."""
     return wtypes.List([

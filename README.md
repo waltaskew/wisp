@@ -90,13 +90,20 @@ Integer(val=3)
 ```
 
 
-infinite recursion!
+conditional expressions!
 ```
-wisp => (((snakes) () lambda) snakes define)
-Symbol(name='snakes')
-wisp => (snakes)
-...
-RecursionError: maximum recursion depth exceeded
+wisp => (1 a define)
+Symbol(name='a')
+wisp => (("something-else" else) ("two" (2 a eq?)) ("one" (1 a eq?)) cond)
+String(val='one')
+wisp => (2 a define)
+Symbol(name='a')
+wisp => (("something-else" else) ("two" (2 a eq?)) ("one" (1 a eq?)) cond)
+String(val='two')
+wisp => (3 a define)
+Symbol(name='a')
+wisp => (("something-else" else) ("two" (2 a eq?)) ("one" (1 a eq?)) cond)
+String(val='something-else')
 ```
 
 Notes
