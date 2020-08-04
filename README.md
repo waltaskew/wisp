@@ -106,8 +106,20 @@ wisp => (("something-else" else) ("two" (2 a eq?)) ("one" (1 a eq?)) cond)
 String(val='something-else')
 ```
 
-Notes
------
-I may have been having a bit too much fun and spent more like six to
-eight than four to six hours on this. Still need to do a bit more work
-for useful recursion and closures, though!
+recursion!
+```
+wisp => (((((((2 n -) fib) ((1 n -) fib) +) else) (1 (1 n eq?)) (0 (0 n eq?)) cond) (n) lambda) fib define)
+Symbol(name='fib')
+wisp => (0 fib)
+Integer(val=0)
+wisp => (1 fib)
+Integer(val=1)
+wisp => (2 fib)
+Integer(val=1)
+wisp => (6 fib)
+Integer(val=8)
+wisp => (7 fib)
+Integer(val=13)
+wisp => (8 fib)
+Integer(val=21)
+```
